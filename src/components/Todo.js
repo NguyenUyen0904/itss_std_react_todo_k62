@@ -10,8 +10,8 @@ import TodoItem from './TodoItem';
 import Input from './Input';
 import Filter from './Filter';
 /* カスタムフック */
-import useStorage from '../hooks/storage';
-/* ライブラリ */
+import useFirebaseStorage from '../hooks/firebaseStorage';
+
 import {getKey} from "../lib/util";
 
 function Todo() {
@@ -22,21 +22,14 @@ function Todo() {
   //   { key: getKey(), text: '明日の準備をする', done: false },
   //   /* テストコード 終了 */
   // ]);
-  const [items, putItems, clearItems] = useStorage();
+    const [items, addItem, updateItem, clearItems] = useFirebaseStorage();
 
   const handleCheck = checked => {
-    const newItems = items.map(item => {
-      if (item.key === checked.key) {
-        item.done = !item.done;
-      }
-      return item;
-    });
-    putItems(newItems);
+     updateItem(changedItem, isCheck);
   };
   
   const handleAdd = text => {
-    putItems([...items, {key: getKey(), text, done:false}]);
-  };
+     addItem({ text, done: false });
   
   const [filter, setFilter] = React.useState('ALL');
   const displayItems = items.filter(item => {
@@ -44,23 +37,16 @@ function Todo() {
     if (filter === 'TODO') return !item.done;
     if (filter === 'DONE') return item.done;
   });
-  const handleFilterChange = value => setFilter(value);
+  const handleFilterChange = (value) => { setFilter(value) };
   return (
     <div className="panel">
       <div className="panel-heading">
         ITSS ToDoアプリ
       </div>
       <Input onAdd={handleAdd} />
-      <Filter
-        onChange={handleFilterChange}
-        value={filter}
-      />
+      <Filter value={filter} onChange={handleFilterChange} />
       {displayItems.map(item => (
-        <TodoItem
-          key={item.key}
-          item={item}
-          onCheck={handleCheck}
-        />
+        <TodoItem key={item.id} item={item} onCheck={handleCheck} />
       ))}
       <div className="panel-block">
         {displayItems.length} items
